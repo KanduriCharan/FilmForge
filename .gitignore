@@ -1,0 +1,64 @@
+# OS
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Backend local secret config
+backend/FilmForge.Api/appsettings.Development.json
+backend/FilmForge.Api/appsettings.Local.json
+backend/FilmForge.Api/secrets.json
+
+# AWS / certs / private keys
+*.pem
+*.key
+*.pfx
+*.p12
+
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE
+.idea/
+.vscode/
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+coverage/
+.npm/
+
+# Frontend local env files
+frontend/filmforge-web/src/environments/environment.development.ts
+frontend/filmforge-web/src/environments/environment.local.ts
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.rar
