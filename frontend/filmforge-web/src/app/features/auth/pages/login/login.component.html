@@ -1,0 +1,79 @@
+<div class="auth-page">
+  <div class="auth-backdrop"></div>
+
+  <section class="auth-layout">
+    <div class="brand-panel">
+      <div class="brand-overlay"></div>
+
+      <div class="brand-content">
+        <div class="brand-badge">FilmForge</div>
+
+        <h1>Where filmmakers meet, create, and build cinema together.</h1>
+
+        <p class="brand-copy">
+          A premium community for storytellers, screenwriters, editors, cinematographers,
+          actors, and film lovers to collaborate on ideas that deserve the screen.
+        </p>
+
+        <div class="feature-list">
+          <div class="feature-card">
+            <span class="feature-kicker">24 Crafts</span>
+            <h3>Learn every department of cinema</h3>
+            <p>Explore directing, writing, cinematography, editing, sound, VFX, and more.</p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-kicker">Create Together</span>
+            <h3>Find your next crew</h3>
+            <p>Meet like-minded creators, form teams, and turn scripts into productions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-panel">
+      <div class="form-card">
+        <div class="form-card-glow"></div>
+
+        <div class="form-header">
+          <p class="eyebrow">Welcome back</p>
+          <h2>Sign in to FilmForge</h2>
+          <p class="subtext">
+            Continue your creative journey. Access your projects, discussions, and collaborations.
+          </p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email" placeholder="Enter your email" />
+            <small *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
+              Please enter a valid email address.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="password">Password</label>
+              <a href="javascript:void(0)">Forgot password?</a>
+            </div>
+            <input id="password" type="password" formControlName="password" placeholder="Enter your password" />
+            <small *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+              Password is required.
+            </small>
+          </div>
+
+          <button type="submit" class="primary-btn">Enter the studio</button>
+        </form>
+
+        <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
+        <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+        <p class="switch-text">
+          New to FilmForge?
+          <a routerLink="/signup">Create your account</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</div>

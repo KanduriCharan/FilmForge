@@ -1,0 +1,243 @@
+<div class="studio-page">
+  <aside class="chat-sidebar" [class.collapsed]="isChatCollapsed">
+    <button class="chat-header" (click)="toggleChat()">
+      <div>
+        <p class="chat-title">Online now</p>
+        <span class="chat-count">{{ onlineUsers.length }} active</span>
+      </div>
+      <span class="chat-toggle">{{ isChatCollapsed ? '+' : '−' }}</span>
+    </button>
+
+    <div class="chat-body" *ngIf="!isChatCollapsed">
+      <div class="chat-user" *ngFor="let user of onlineUsers">
+        <div class="chat-user-avatar">{{ user.name.charAt(0) }}</div>
+        <div class="chat-user-meta">
+          <strong>{{ user.name }}</strong>
+          <span>{{ user.craft }}</span>
+        </div>
+        <span class="online-dot"></span>
+      </div>
+    </div>
+  </aside>
+
+  <section class="studio-shell">
+    <header class="studio-header">
+      <div>
+        <p class="eyebrow">Studio</p>
+        <h1>What are you creating today?</h1>
+        <p class="subtext">
+          Share your thoughts, showcase your work, start a collaboration, or explore the crafts of cinema.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <a [routerLink]="['/profile', currentUsername]" class="ghost-btn">My Profile</a>
+      </div>
+    </header>
+
+    <section class="composer-card">
+      <div class="composer-avatar">FF</div>
+
+      <div class="composer-main">
+        <textarea
+          class="composer-textarea"
+          [(ngModel)]="caption"
+          placeholder="What are you creating today? Share a thought, work update, or idea."
+          rows="4"
+        ></textarea>
+
+        <div class="composer-toolbar">
+          <label class="upload-btn">
+            Add photos/video
+            <input type="file" multiple accept="image/*,video/*" (change)="onFilesSelected($event)" hidden />
+          </label>
+
+          <button class="post-btn" (click)="openPreview()">
+            Preview Post
+          </button>
+        </div>
+
+        <div class="selected-files" *ngIf="selectedFileNames.length">
+          <span class="file-chip" *ngFor="let fileName of selectedFileNames">{{ fileName }}</span>
+        </div>
+
+        <p class="error-message" *ngIf="postErrorMessage">{{ postErrorMessage }}</p>
+
+        <div class="quick-actions">
+          <button class="action-pill primary">
+            <span class="pill-icon"></span>
+            Share Post
+          </button>
+
+          <a routerLink="/collaborate" class="action-pill">
+            <span class="pill-icon"></span>
+            Start Collaboration
+          </a>
+
+          <a routerLink="/crafts" class="action-pill">
+            <span class="pill-icon"></span>
+            Explore Crafts
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="feed-section">
+      <div class="feed-heading">
+        <div>
+          <p class="eyebrow">Feed</p>
+          <h2>From creators you follow</h2>
+        </div>
+      </div>
+
+      <p class="loading-text" *ngIf="isLoadingPosts">Loading feed...</p>
+
+      <ng-container *ngIf="!isLoadingPosts">
+        <article class="feed-card" *ngFor="let post of posts; trackBy: trackByPostId">
+          <div class="feed-top">
+            <div class="feed-avatar">{{ post.authorName.charAt(0) }}</div>
+
+            <div class="feed-meta">
+              <h3>{{ post.authorName }}</h3>
+              <p>{{'@'+ post.username }} · {{ '@' +post.craft }}</p>
+            </div>
+
+            <span class="feed-tag">post</span>
+          </div>
+
+          <p class="feed-content" *ngIf="post.caption">{{ post.caption }}</p>
+
+          <div
+            class="post-media-frame"
+            *ngIf="post.mediaItems.length > 0"
+            [ngClass]="getPreviewGridClass(post.mediaItems.length)"
+          >
+            <ng-container *ngFor="let media of post.mediaItems">
+              <div class="post-media-tile">
+                <img
+                  *ngIf="media.mediaType === 'image'"
+                  [src]="media.mediaUrl"
+                  alt="Post image"
+                  class="post-image"
+                />
+
+                <video
+                  *ngIf="media.mediaType === 'video'"
+                  [src]="media.mediaUrl"
+                  controls
+                  class="post-video"
+                ></video>
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="feed-stats">
+            <span>{{ post.likesCount }} likes</span>
+            <span>{{ post.commentsCount }} comments</span>
+          </div>
+
+          <div class="feed-actions">
+            <button (click)="likePost(post)">Like</button>
+            <button (click)="toggleComments(post)">
+              {{ post.commentsOpen ? 'Hide Comments' : 'Comment' }}
+            </button>
+            <button>Share</button>
+          </div>
+
+          <div class="comments-panel" *ngIf="post.commentsOpen">
+            <div class="comment-composer">
+              <input
+                type="text"
+                [(ngModel)]="post.newComment"
+                placeholder="Write a comment..."
+                class="comment-input"
+              />
+              <button (click)="submitComment(post)" class="comment-submit-btn">Send</button>
+            </div>
+
+            <p class="comment-state" *ngIf="post.commentsLoading">Loading comments...</p>
+            <p class="comment-error" *ngIf="post.commentsError">{{ post.commentsError }}</p>
+
+            <div class="comments-list" *ngIf="!post.commentsLoading && post.comments.length > 0">
+              <div class="comment-item" *ngFor="let comment of post.comments">
+                <div class="comment-avatar">{{ comment.authorName.charAt(0) }}</div>
+                <div class="comment-body">
+                  <p class="comment-author">
+                    {{ comment.authorName }}
+                    <span>{{'@'+ comment.username }}</span>
+                  </p>
+                  <p class="comment-text">{{ comment.content }}</p>
+                </div>
+              </div>
+            </div>
+
+            <p class="comment-state" *ngIf="!post.commentsLoading && post.comments.length === 0">
+              No comments yet.
+            </p>
+          </div>
+        </article>
+
+        <p class="loading-text" *ngIf="posts.length === 0">No posts yet. Create the first one.</p>
+      </ng-container>
+    </section>
+  </section>
+
+  <div class="preview-overlay" *ngIf="isPreviewOpen">
+    <div class="preview-modal">
+      <div class="preview-header">
+        <h3>Preview your post</h3>
+        <button class="close-btn" (click)="closePreview()">✕</button>
+      </div>
+
+      <div class="preview-body">
+        <div class="preview-left">
+          <div
+            class="preview-media-frame"
+            *ngIf="selectedFiles.length > 0"
+            [ngClass]="getPreviewGridClass(selectedFiles.length)"
+          >
+            <ng-container *ngFor="let file of selectedFiles; let i = index">
+              <div class="preview-media-tile">
+                <img
+                  *ngIf="isImageFile(file)"
+                  [src]="previewUrls[i]"
+                  alt="Preview image"
+                  class="preview-image"
+                />
+
+                <video
+                  *ngIf="isVideoFile(file)"
+                  [src]="previewUrls[i]"
+                  controls
+                  class="preview-video"
+                ></video>
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="preview-empty" *ngIf="selectedFiles.length === 0">
+            <p>Text-only post preview</p>
+          </div>
+        </div>
+
+        <div class="preview-right">
+          <div class="preview-author">
+            <div class="composer-avatar">FF</div>
+            <div>
+              <strong>{{ currentUsername || 'you' }}</strong>
+              <p>Ready to share with FilmForge</p>
+            </div>
+          </div>
+
+          <div class="preview-caption">
+            {{ caption || 'No caption added.' }}
+          </div>
+
+          <button class="confirm-post-btn" (click)="createPost()" [disabled]="isCreatingPost">
+            {{ isCreatingPost ? 'Posting...' : 'Post now' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

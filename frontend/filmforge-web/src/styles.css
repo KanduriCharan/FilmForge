@@ -1,0 +1,62 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root {
+  --bg: #0b0b0f;
+  --bg-soft: #111119;
+  --surface: rgba(20, 20, 30, 0.72);
+  --surface-strong: #171723;
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #f5f5f7;
+  --text-soft: #b7b7c5;
+  --gold: #d4af37;
+  --gold-soft: #f4d77a;
+  --red: #8b1e2d;
+  --red-soft: #c43b51;
+  --blue-glow: rgba(59, 130, 246, 0.22);
+  --gold-glow: rgba(212, 175, 55, 0.22);
+  --danger: #ff6b6b;
+  --success: #59d38c;
+  --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 16px 40px rgba(0, 0, 0, 0.35);
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at top left, rgba(139, 30, 45, 0.22), transparent 28%),
+      radial-gradient(circle at top right, rgba(212, 175, 55, 0.14), transparent 24%),
+      radial-gradient(circle at bottom center, rgba(59, 130, 246, 0.12), transparent 22%),
+      linear-gradient(135deg, #07070b 0%, #0b0b0f 45%, #0f1017 100%);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+body {
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--gold-soft);
+  text-decoration: none;
+}
+
+a:hover {
+  color: #fff1b8;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}

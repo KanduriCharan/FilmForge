@@ -1,0 +1,153 @@
+<div class="home-page">
+    <header class="topbar">
+      <div class="brand">FilmForge</div>
+  
+      <nav class="nav-links">
+        <a href="#crafts">Crafts</a>
+        <a href="#story">Why FilmForge</a>
+        <a href="#community">Community</a>
+      </nav>
+  
+      <div class="nav-actions">
+        <a routerLink="/login" class="ghost-btn">Sign in</a>
+        <a routerLink="/signup" class="primary-btn">Join now</a>
+      </div>
+    </header>
+  
+    <section class="hero-section">
+      <div class="hero-copy">
+        <div class="eyebrow">A social platform for filmmakers</div>
+        <h1>Where film lovers become collaborators.</h1>
+        <p>
+          Learn the 24 crafts of cinema, build your creative network, showcase your work,
+          join discussions, and develop scripts with people who truly understand film.
+        </p>
+  
+        <div class="hero-actions">
+          <a routerLink="/signup" class="primary-btn">Start your journey</a>
+          <a href="#story" class="ghost-btn">Explore the platform</a>
+        </div>
+  
+        <div class="hero-stats">
+          <div class="stat">
+            <strong>24</strong>
+            <span>Film crafts</span>
+          </div>
+          <div class="stat">
+            <strong>1</strong>
+            <span>Creative ecosystem</span>
+          </div>
+          <div class="stat">
+            <strong>∞</strong>
+            <span>Stories to build</span>
+          </div>
+        </div>
+      </div>
+  
+      <div class="hero-visual">
+        <div class="visual-card large-card">
+          <span class="card-label">Featured Project</span>
+          <h3>Midnight Static</h3>
+          <p>Psychological short film · Recruiting editor, colorist, and composer</p>
+        </div>
+  
+        <div class="floating-card card-one">
+          <span>Screenwriter</span>
+        </div>
+  
+        <div class="floating-card card-two">
+          <span>Cinematographer</span>
+        </div>
+  
+        <div class="floating-card card-three">
+          <span>Editor</span>
+        </div>
+      </div>
+    </section>
+  
+    <section id="story" class="story-section" #storySection>
+        <div class="story-sticky" [ngClass]="storySteps[activeStepIndex].accent">
+          <div class="story-panel">
+            <div class="story-copy">
+              <div class="eyebrow">{{ storySteps[activeStepIndex].eyebrow }}</div>
+              <h2>{{ storySteps[activeStepIndex].title }}</h2>
+              <p>{{ storySteps[activeStepIndex].description }}</p>
+      
+              <div class="story-indicators">
+                <span
+                  *ngFor="let step of storySteps; let i = index"
+                  [class.active]="i === activeStepIndex"
+                ></span>
+              </div>
+            </div>
+      
+            <div class="story-visual-shell">
+              <div
+                class="story-visual-stage"
+                [style.transform]="'translateY(' + visualTranslateY + 'px) scale(' + visualScale + ') rotate(' + visualRotate + 'deg)'"
+              >
+                <div class="story-orb"></div>
+                <div class="story-device"></div>
+                <div class="story-glass-card top-card">
+                  {{ storySteps[activeStepIndex].eyebrow }}
+                </div>
+                <div class="story-glass-card bottom-card">
+                  FilmForge
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+        <div class="story-scroll">
+          <article
+            class="story-step"
+            *ngFor="let step of storySteps; let i = index"
+            #storyStep
+          >
+            <div class="step-box">
+              <div class="step-number">0{{ i + 1 }}</div>
+              <div class="eyebrow">{{ step.eyebrow }}</div>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.description }}</p>
+            </div>
+          </article>
+        </div>
+      </section>
+  
+    <section id="crafts" class="crafts-section">
+      <div class="section-heading">
+        <div class="eyebrow">The departments of cinema</div>
+        <h2>Built for every creative role behind and in front of the camera.</h2>
+        <p>
+          Discover crafts, learn the language of each department, and connect with people
+          who specialize in them.
+        </p>
+      </div>
+  
+      <div class="crafts-grid">
+        <div class="craft-card" *ngFor="let craft of crafts">
+          <span class="craft-icon"></span>
+          <h3>{{ craft }}</h3>
+          <p>Find creators, learn the role, and join projects in this craft.</p>
+        </div>
+      </div>
+    </section>
+  
+    <section id="community" class="community-section">
+      <div class="community-card">
+        <div class="eyebrow">Why FilmForge</div>
+        <h2>Not just social media. A production-minded platform for cinema.</h2>
+        <p>
+          Most creators are forced to split their workflow across multiple platforms.
+          FilmForge brings learning, networking, collaboration, discussion, and script development
+          into one premium space.
+        </p>
+  
+        <div class="community-actions">
+          <a routerLink="/signup" class="primary-btn">Create account</a>
+          <a routerLink="/login" class="ghost-btn">Sign in</a>
+        </div>
+      </div>
+    </section>
+  </div>

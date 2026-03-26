@@ -1,0 +1,46 @@
+<div class="profile-page" *ngIf="profile; else stateBlock">
+    <div class="profile-card">
+      <div class="eyebrow">{{ profile.primaryCraft }}</div>
+      <h1>{{ profile.fullName }}</h1>
+      <p class="username">{{'@' + profile.username }}</p>
+  
+      <p class="bio" *ngIf="profile.bio">{{ profile.bio }}</p>
+  
+      <div class="meta-grid">
+        <div class="meta-item" *ngIf="profile.location">
+          <span>Location</span>
+          <strong>{{ profile.location }}</strong>
+        </div>
+  
+        <div class="meta-item" *ngIf="profile.experienceLevel">
+          <span>Experience</span>
+          <strong>{{ profile.experienceLevel }}</strong>
+        </div>
+  
+        <div class="meta-item" *ngIf="profile.availabilityStatus">
+          <span>Availability</span>
+          <strong>{{ profile.availabilityStatus }}</strong>
+        </div>
+  
+        <div class="meta-item" *ngIf="profile.secondaryCrafts">
+          <span>Secondary crafts</span>
+          <strong>{{ profile.secondaryCrafts }}</strong>
+        </div>
+      </div>
+  
+      <div class="links" *ngIf="profile.portfolioUrl || profile.instagramUrl || profile.youtubeUrl">
+        <a *ngIf="profile.portfolioUrl" [href]="profile.portfolioUrl" target="_blank">Portfolio</a>
+        <a *ngIf="profile.instagramUrl" [href]="profile.instagramUrl" target="_blank">Instagram</a>
+        <a *ngIf="profile.youtubeUrl" [href]="profile.youtubeUrl" target="_blank">YouTube</a>
+      </div>
+    </div>
+  </div>
+  
+  <ng-template #stateBlock>
+    <div class="profile-page">
+      <div class="profile-card">
+        <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+        <p *ngIf="!errorMessage">Loading profile...</p>
+      </div>
+    </div>
+  </ng-template>

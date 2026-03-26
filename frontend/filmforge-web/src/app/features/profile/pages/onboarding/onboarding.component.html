@@ -1,0 +1,73 @@
+<div class="onboarding-page">
+    <div class="onboarding-card">
+      <div class="eyebrow">Complete your profile</div>
+      <h1>Tell FilmForge who you are</h1>
+      <p class="subtext">
+        Build your creator identity so other filmmakers can discover and collaborate with you.
+      </p>
+  
+      <form [formGroup]="onboardingForm" (ngSubmit)="onSubmit()" class="onboarding-form">
+        <div class="grid">
+          <div class="form-group">
+            <label>Full name</label>
+            <input type="text" formControlName="fullName" />
+          </div>
+  
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" formControlName="username" />
+          </div>
+  
+          <div class="form-group full">
+            <label>Bio</label>
+            <textarea rows="4" formControlName="bio"></textarea>
+          </div>
+  
+          <div class="form-group">
+            <label>Primary craft</label>
+            <input type="text" formControlName="primaryCraft" placeholder="Screenwriting" />
+          </div>
+  
+          <div class="form-group">
+            <label>Secondary crafts</label>
+            <input type="text" formControlName="secondaryCrafts" placeholder="Editing, Cinematography" />
+          </div>
+  
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" formControlName="location" />
+          </div>
+  
+          <div class="form-group">
+            <label>Experience level</label>
+            <input type="text" formControlName="experienceLevel" placeholder="Student / Beginner / Professional" />
+          </div>
+  
+          <div class="form-group">
+            <label>Availability</label>
+            <input type="text" formControlName="availabilityStatus" placeholder="Open to collaborate" />
+          </div>
+  
+          <div class="form-group">
+            <label>Portfolio URL</label>
+            <input type="text" formControlName="portfolioUrl" />
+          </div>
+  
+          <div class="form-group">
+            <label>Instagram URL</label>
+            <input type="text" formControlName="instagramUrl" />
+          </div>
+  
+          <div class="form-group">
+            <label>YouTube URL</label>
+            <input type="text" formControlName="youtubeUrl" />
+          </div>
+        </div>
+  
+        <button type="submit" class="primary-btn">Create profile</button>
+      </form>
+  
+      <p class="success" *ngIf="successMessage">{{ successMessage }}</p>
+      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </div>
+  </div>

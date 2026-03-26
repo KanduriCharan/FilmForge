@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: filmForge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: filmforge_db
+      POSTGRES_USER: filmforge_user
+      POSTGRES_PASSWORD: filmforge_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - filmforge_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U filmforge_user -d filmforge_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  filmforge_pgdata:
