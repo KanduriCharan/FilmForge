@@ -52,6 +52,10 @@ export class PostService {
     return this.http.get<PostResponse[]>(this.apiBaseUrl);
   }
 
+  getPostsByUserId(userId: string): Observable<PostResponse[]> {
+    return this.http.get<PostResponse[]>(`${this.apiBaseUrl}/user/${userId}`);
+  }
+
   likePost(postId: string, userId: string): Observable<any> {
     const params = new HttpParams().set('userId', userId);
     return this.http.post(`${this.apiBaseUrl}/${postId}/like`, null, { params });

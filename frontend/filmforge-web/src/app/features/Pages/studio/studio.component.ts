@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   PostCommentResponse,
   PostResponse,
@@ -41,6 +42,7 @@ interface PostViewModel extends PostResponse {
 export class StudioComponent implements OnInit {
   private postService = inject(PostService);
   private profileService = inject(ProfileService);
+  private router = inject(Router);
 
   currentUsername = localStorage.getItem('filmforge_username') ?? '';
   currentUserId = localStorage.getItem('filmforge_userId') ?? '';
@@ -129,6 +131,24 @@ export class StudioComponent implements OnInit {
     }
 
     this.isPreviewOpen = true;
+  }
+
+  goToMyProfile(): void {
+    const userId = localStorage.getItem('filmforge_userId') ?? '';
+  
+    if (!userId) {
+      console.error('No logged-in userId found.');
+      return;
+    }
+  
+    this.profileService.getProfileByUserId(userId).subscribe({
+      next: (profile) => {
+        this.router.navigate(['/profile', profile.username]);
+      },
+      error: (error) => {
+        console.error('Failed to resolve my profile:', error);
+      }
+    });
   }
 
   closePreview(): void {

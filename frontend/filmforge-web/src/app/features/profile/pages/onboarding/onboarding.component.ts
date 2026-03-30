@@ -18,10 +18,17 @@ export class OnboardingComponent {
 
   errorMessage = '';
   successMessage = '';
+  isSubmitting = false;
+
+  selectedProfileImageFile: File | null = null;
+  profileImagePreviewUrl: string | null = null;
 
   onboardingForm = this.fb.group({
     fullName: ['', [Validators.required]],
-    username: ['', [Validators.required]],
+    username: [
+      { value: localStorage.getItem('filmforge_username') ?? '', disabled: true },
+      [Validators.required]
+    ],
     bio: [''],
     primaryCraft: ['', [Validators.required]],
     secondaryCrafts: [''],
@@ -33,6 +40,28 @@ export class OnboardingComponent {
     youtubeUrl: ['']
   });
 
+  onProfileImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (!file) {
+      return;
+    }
+
+    this.selectedProfileImageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.profileImagePreviewUrl = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeSelectedImage(): void {
+    this.selectedProfileImageFile = null;
+    this.profileImagePreviewUrl = null;
+  }
+
   onSubmit(): void {
     this.errorMessage = '';
     this.successMessage = '';
@@ -42,27 +71,60 @@ export class OnboardingComponent {
       return;
     }
 
+    const userId = localStorage.getItem('filmforge_userId') ?? '';
+
+    if (!userId) {
+      this.errorMessage = 'User session not found. Please log in again.';
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    const raw = this.onboardingForm.getRawValue();
+
     const payload = {
-      userId: localStorage.getItem('filmforge_userId') ??'',
-      fullName: this.onboardingForm.value.fullName ?? '',
-      username: this.onboardingForm.value.username ?? '',
-      bio: this.onboardingForm.value.bio ?? '',
-      primaryCraft: this.onboardingForm.value.primaryCraft ?? '',
-      secondaryCrafts: this.onboardingForm.value.secondaryCrafts ?? '',
-      location: this.onboardingForm.value.location ?? '',
-      experienceLevel: this.onboardingForm.value.experienceLevel ?? '',
-      availabilityStatus: this.onboardingForm.value.availabilityStatus ?? '',
-      portfolioUrl: this.onboardingForm.value.portfolioUrl ?? '',
-      instagramUrl: this.onboardingForm.value.instagramUrl ?? '',
-      youtubeUrl: this.onboardingForm.value.youtubeUrl ?? ''
+      userId,
+      fullName: raw.fullName ?? '',
+      username: raw.username ?? '',
+      bio: raw.bio ?? '',
+      primaryCraft: raw.primaryCraft ?? '',
+      secondaryCrafts: raw.secondaryCrafts ?? '',
+      location: raw.location ?? '',
+      experienceLevel: raw.experienceLevel ?? '',
+      availabilityStatus: raw.availabilityStatus ?? '',
+      portfolioUrl: raw.portfolioUrl ?? '',
+      instagramUrl: raw.instagramUrl ?? '',
+      youtubeUrl: raw.youtubeUrl ?? ''
     };
 
     this.profileService.createProfile(payload).subscribe({
-      next: (response) => {
-        this.successMessage = 'Profile created successfully.';
-        this.router.navigate(['/studio']);
+      next: () => {
+        const imageFile = this.selectedProfileImageFile;
+
+        if (!imageFile) {
+          this.successMessage = 'Profile created successfully.';
+          this.isSubmitting = false;
+          this.router.navigate(['/studio']);
+          return;
+        }
+
+        this.profileService.uploadProfileImage(userId, imageFile).subscribe({
+          next: () => {
+            this.successMessage = 'Profile created successfully.';
+            this.isSubmitting = false;
+            this.router.navigate(['/studio']);
+          },
+          error: (error) => {
+            console.log('Profile image upload failed:', error);
+            this.isSubmitting = false;
+            this.errorMessage =
+              error?.error?.Message ||
+              'Profile created, but image upload failed.';
+          }
+        });
       },
       error: (error) => {
+        this.isSubmitting = false;
         this.errorMessage = error?.error?.Message || 'Failed to create profile.';
       }
     });

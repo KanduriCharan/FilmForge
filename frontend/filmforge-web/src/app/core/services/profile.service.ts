@@ -15,6 +15,7 @@ export interface CreateProfileRequest {
   portfolioUrl?: string;
   instagramUrl?: string;
   youtubeUrl?: string;
+  profileImageUrl?: string;
 }
 
 export interface ProfileResponse {
@@ -31,6 +32,7 @@ export interface ProfileResponse {
   portfolioUrl?: string;
   instagramUrl?: string;
   youtubeUrl?: string;
+  profileImageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,9 +48,20 @@ export class ProfileService {
     return this.http.post<ProfileResponse>(this.apiBaseUrl, payload);
   }
 
+  updateProfile(userId: string, payload: CreateProfileRequest): Observable<ProfileResponse> {
+    return this.http.put<ProfileResponse>(`${this.apiBaseUrl}/${userId}`, payload);
+  }
+
+  uploadProfileImage(userId: string, file: File): Observable<ProfileResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.put<ProfileResponse>(`${this.apiBaseUrl}/${userId}/image`, formData);
+  }
+
   getProfileByUsername(username: string): Observable<ProfileResponse> {
     return this.http.get<ProfileResponse>(`${this.apiBaseUrl}/${username}`);
   }
+
   getProfileByUserId(userId: string): Observable<ProfileResponse> {
     return this.http.get<ProfileResponse>(`${this.apiBaseUrl}/by-userid/${userId}`);
   }

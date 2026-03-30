@@ -31,7 +31,7 @@
       </div>
 
       <div class="header-actions">
-        <a [routerLink]="['/profile', currentUsername]" class="ghost-btn">My Profile</a>
+        <button type="button" class="ghost-btn" (click)="goToMyProfile()">My Profile</button>
       </div>
     </header>
 
