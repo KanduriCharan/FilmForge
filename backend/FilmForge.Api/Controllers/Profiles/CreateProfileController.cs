@@ -42,6 +42,17 @@ public class CreateProfileController : ControllerBase
             });
         }
 
+        var existingUserProfile = await _dbContext.UserProfiles
+            .AnyAsync(x => x.UserId == request.UserId);
+
+        if (existingUserProfile)
+        {
+            return Conflict(new
+            {
+                Message = "A profile already exists for this user."
+            });
+        }
+
         var profile = new UserProfile
         {
             Id = Guid.NewGuid(),
@@ -57,6 +68,7 @@ public class CreateProfileController : ControllerBase
             PortfolioUrl = request.PortfolioUrl,
             InstagramUrl = request.InstagramUrl,
             YoutubeUrl = request.YoutubeUrl,
+            ProfileImageUrl = request.ProfileImageUrl,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -64,26 +76,89 @@ public class CreateProfileController : ControllerBase
         _dbContext.UserProfiles.Add(profile);
         await _dbContext.SaveChangesAsync();
 
-        var response = new CreateProfileResponse
-        {
-            Id = profile.Id,
-            UserId = profile.UserId,
-            FullName = profile.FullName,
-            Username = profile.Username,
-            Bio = profile.Bio,
-            PrimaryCraft = profile.PrimaryCraft,
-            SecondaryCrafts = profile.SecondaryCrafts,
-            Location = profile.Location,
-            ExperienceLevel = profile.ExperienceLevel,
-            AvailabilityStatus = profile.AvailabilityStatus,
-            PortfolioUrl = profile.PortfolioUrl,
-            InstagramUrl = profile.InstagramUrl,
-            YoutubeUrl = profile.YoutubeUrl,
-            CreatedAt = profile.CreatedAt,
-            UpdatedAt = profile.UpdatedAt
-        };
+        return Ok(MapProfile(profile));
+    }
 
-        return Ok(response);
+    [HttpPut("{userId}")]
+    public async Task<IActionResult> UpdateProfile(string userId, [FromBody] CreateProfileRequest request)
+    {
+        var profile = await _dbContext.UserProfiles
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound(new { Message = "Profile not found." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName) ||
+            string.IsNullOrWhiteSpace(request.Username) ||
+            string.IsNullOrWhiteSpace(request.PrimaryCraft))
+        {
+            return BadRequest(new
+            {
+                Message = "FullName, Username, and PrimaryCraft are required."
+            });
+        }
+
+        var usernameTakenByAnotherUser = await _dbContext.UserProfiles
+            .AnyAsync(x => x.Username == request.Username && x.UserId != userId);
+
+        if (usernameTakenByAnotherUser)
+        {
+            return Conflict(new { Message = "That username is already taken." });
+        }
+
+        profile.FullName = request.FullName;
+        profile.Username = request.Username;
+        profile.Bio = request.Bio;
+        profile.PrimaryCraft = request.PrimaryCraft;
+        profile.SecondaryCrafts = request.SecondaryCrafts;
+        profile.Location = request.Location;
+        profile.ExperienceLevel = request.ExperienceLevel;
+        profile.AvailabilityStatus = request.AvailabilityStatus;
+        profile.PortfolioUrl = request.PortfolioUrl;
+        profile.InstagramUrl = request.InstagramUrl;
+        profile.YoutubeUrl = request.YoutubeUrl;
+
+        if (!string.IsNullOrWhiteSpace(request.ProfileImageUrl))
+        {
+            profile.ProfileImageUrl = request.ProfileImageUrl;
+        }
+
+        profile.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(MapProfile(profile));
+    }
+
+    [HttpPut("{userId}/image")]
+    public async Task<IActionResult> UpdateProfileImage(string userId, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new { Message = "Profile image file is required." });
+        }
+
+        var profile = await _dbContext.UserProfiles
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound(new { Message = "Profile not found." });
+        }
+
+        // TEMPORARY:
+        // Replace this later with real S3 upload using your media service.
+        // For now, store a placeholder value or wire actual S3 upload here.
+        var fakeUploadedUrl = $"https://your-cdn-or-s3-url/profile-images/{Guid.NewGuid()}-{file.FileName}";
+
+        profile.ProfileImageUrl = fakeUploadedUrl;
+        profile.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(MapProfile(profile));
     }
 
     [HttpGet("{username}")]
@@ -95,32 +170,10 @@ public class CreateProfileController : ControllerBase
 
         if (profile == null)
         {
-            return NotFound(new
-            {
-                Message = "Profile not found."
-            });
+            return NotFound(new { Message = "Profile not found." });
         }
 
-        var response = new CreateProfileResponse
-        {
-            Id = profile.Id,
-            UserId = profile.UserId,
-            FullName = profile.FullName,
-            Username = profile.Username,
-            Bio = profile.Bio,
-            PrimaryCraft = profile.PrimaryCraft,
-            SecondaryCrafts = profile.SecondaryCrafts,
-            Location = profile.Location,
-            ExperienceLevel = profile.ExperienceLevel,
-            AvailabilityStatus = profile.AvailabilityStatus,
-            PortfolioUrl = profile.PortfolioUrl,
-            InstagramUrl = profile.InstagramUrl,
-            YoutubeUrl = profile.YoutubeUrl,
-            CreatedAt = profile.CreatedAt,
-            UpdatedAt = profile.UpdatedAt
-        };
-
-        return Ok(response);
+        return Ok(MapProfile(profile));
     }
 
     [HttpGet("by-userid/{userId}")]
@@ -132,13 +185,15 @@ public class CreateProfileController : ControllerBase
 
         if (profile == null)
         {
-            return NotFound(new
-            {
-                Message = "Profile not found."
-            });
+            return NotFound(new { Message = "Profile not found." });
         }
 
-        var response = new CreateProfileResponse
+        return Ok(MapProfile(profile));
+    }
+
+    private static CreateProfileResponse MapProfile(UserProfile profile)
+    {
+        return new CreateProfileResponse
         {
             Id = profile.Id,
             UserId = profile.UserId,
@@ -153,10 +208,9 @@ public class CreateProfileController : ControllerBase
             PortfolioUrl = profile.PortfolioUrl,
             InstagramUrl = profile.InstagramUrl,
             YoutubeUrl = profile.YoutubeUrl,
+            ProfileImageUrl = profile.ProfileImageUrl,
             CreatedAt = profile.CreatedAt,
             UpdatedAt = profile.UpdatedAt
         };
-
-        return Ok(response);
     }
 }

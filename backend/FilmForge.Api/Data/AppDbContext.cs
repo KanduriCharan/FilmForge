@@ -35,6 +35,7 @@ public class AppDbContext : DbContext
             entity.Property(x => x.PortfolioUrl).HasMaxLength(255);
             entity.Property(x => x.InstagramUrl).HasMaxLength(255);
             entity.Property(x => x.YoutubeUrl).HasMaxLength(255);
+            entity.Property(x => x.ProfileImageUrl).HasMaxLength(1000);
 
             entity.HasIndex(x => x.Username).IsUnique();
         });

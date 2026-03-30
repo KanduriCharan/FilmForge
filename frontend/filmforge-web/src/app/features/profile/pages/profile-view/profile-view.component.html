@@ -1,46 +1,124 @@
 <div class="profile-page" *ngIf="profile; else stateBlock">
-    <div class="profile-card">
-      <div class="eyebrow">{{ profile.primaryCraft }}</div>
-      <h1>{{ profile.fullName }}</h1>
-      <p class="username">{{'@' + profile.username }}</p>
-  
-      <p class="bio" *ngIf="profile.bio">{{ profile.bio }}</p>
-  
-      <div class="meta-grid">
-        <div class="meta-item" *ngIf="profile.location">
-          <span>Location</span>
-          <strong>{{ profile.location }}</strong>
+  <div class="profile-shell">
+    <section class="profile-hero">
+      <div class="avatar-wrap">
+        <div class="avatar" *ngIf="!profile.profileImageUrl; else profileImageBlock">
+          <span>{{ getProfileInitial() }}</span>
         </div>
-  
-        <div class="meta-item" *ngIf="profile.experienceLevel">
-          <span>Experience</span>
-          <strong>{{ profile.experienceLevel }}</strong>
+
+        <ng-template #profileImageBlock>
+          <img
+            class="avatar-image"
+            [src]="profile.profileImageUrl"
+            [alt]="profile.fullName"
+          />
+        </ng-template>
+      </div>
+
+      <div class="profile-main">
+        <div class="profile-top-row">
+          <div>
+            <h1>{{ profile.fullName }}</h1>
+            <p class="username">{{ '@' + profile.username }}</p>
+          </div>
+
+          <button class="edit-btn" *ngIf="isOwnProfile">Edit profile</button>
         </div>
-  
-        <div class="meta-item" *ngIf="profile.availabilityStatus">
-          <span>Availability</span>
-          <strong>{{ profile.availabilityStatus }}</strong>
+
+        <div class="stats-row">
+          <div class="stat-chip">
+            <strong>{{ postCount }}</strong>
+            <span>posts</span>
+          </div>
+
+          <div class="stat-chip" *ngIf="profile.primaryCraft">
+            <strong>{{ profile.primaryCraft }}</strong>
+            <span>primary craft</span>
+          </div>
+
+          <div class="stat-chip" *ngIf="profile.location">
+            <strong>{{ profile.location }}</strong>
+            <span>location</span>
+          </div>
         </div>
-  
-        <div class="meta-item" *ngIf="profile.secondaryCrafts">
-          <span>Secondary crafts</span>
-          <strong>{{ profile.secondaryCrafts }}</strong>
+
+        <p class="bio" *ngIf="profile.bio">{{ profile.bio }}</p>
+
+        <div class="meta-grid">
+          <div class="meta-item" *ngIf="profile.secondaryCrafts">
+            <span>Secondary crafts</span>
+            <strong>{{ profile.secondaryCrafts }}</strong>
+          </div>
+
+          <div class="meta-item" *ngIf="profile.experienceLevel">
+            <span>Experience</span>
+            <strong>{{ profile.experienceLevel }}</strong>
+          </div>
+
+          <div class="meta-item" *ngIf="profile.availabilityStatus">
+            <span>Availability</span>
+            <strong>{{ profile.availabilityStatus }}</strong>
+          </div>
+        </div>
+
+        <div class="links" *ngIf="profile.portfolioUrl || profile.instagramUrl || profile.youtubeUrl">
+          <a *ngIf="profile.portfolioUrl" [href]="profile.portfolioUrl" target="_blank">Portfolio</a>
+          <a *ngIf="profile.instagramUrl" [href]="profile.instagramUrl" target="_blank">Instagram</a>
+          <a *ngIf="profile.youtubeUrl" [href]="profile.youtubeUrl" target="_blank">YouTube</a>
         </div>
       </div>
-  
-      <div class="links" *ngIf="profile.portfolioUrl || profile.instagramUrl || profile.youtubeUrl">
-        <a *ngIf="profile.portfolioUrl" [href]="profile.portfolioUrl" target="_blank">Portfolio</a>
-        <a *ngIf="profile.instagramUrl" [href]="profile.instagramUrl" target="_blank">Instagram</a>
-        <a *ngIf="profile.youtubeUrl" [href]="profile.youtubeUrl" target="_blank">YouTube</a>
+    </section>
+
+    <section class="posts-section">
+      <div class="posts-header">
+        <h2>Posts</h2>
       </div>
-    </div>
+
+      <div class="posts-grid" *ngIf="!isLoadingPosts && userPosts.length > 0">
+        <div class="post-tile" *ngFor="let post of userPosts">
+          <img
+            *ngIf="getPrimaryMediaType(post) === 'image'; else videoOrEmpty"
+            [src]="getPrimaryMediaUrl(post)"
+            alt="Post media"
+          />
+
+          <ng-template #videoOrEmpty>
+            <div class="video-placeholder">
+              <video
+                *ngIf="getPrimaryMediaUrl(post)"
+                [src]="getPrimaryMediaUrl(post)"
+                muted
+              ></video>
+              <span class="media-badge">Video</span>
+            </div>
+          </ng-template>
+
+          <div class="post-overlay">
+            <span>❤️ {{ post.likesCount }}</span>
+            <span>💬 {{ post.commentsCount }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-posts" *ngIf="!isLoadingPosts && userPosts.length === 0">
+        <p>No posts yet.</p>
+        <span>This profile has not shared any work yet.</span>
+      </div>
+
+      <div class="empty-posts" *ngIf="isLoadingPosts">
+        <p>Loading posts...</p>
+      </div>
+    </section>
   </div>
-  
-  <ng-template #stateBlock>
-    <div class="profile-page">
-      <div class="profile-card">
+</div>
+
+<ng-template #stateBlock>
+  <div class="profile-page">
+    <div class="profile-shell">
+      <div class="empty-posts">
         <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
         <p *ngIf="!errorMessage">Loading profile...</p>
       </div>
     </div>
-  </ng-template>
+  </div>
+</ng-template>

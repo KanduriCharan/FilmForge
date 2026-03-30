@@ -186,6 +186,40 @@ public class PostsController : ControllerBase
 
         return Ok(response);
     }
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetPostsByUserId(string userId)
+    {
+        var posts = await _dbContext.Posts
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .Include(x => x.MediaItems)
+            .Include(x => x.Likes)
+            .Include(x => x.Comments)
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new PostResponse
+            {
+                Id = x.Id,
+                UserId = x.UserId,
+                Caption = x.Caption,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt,
+                LikesCount = x.Likes.Count,
+                CommentsCount = x.Comments.Count,
+                MediaItems = x.MediaItems
+                    .OrderBy(m => m.SortOrder)
+                    .Select(m => new PostMediaResponse
+                    {
+                        Id = m.Id,
+                        MediaUrl = m.MediaUrl,
+                        MediaType = m.MediaType,
+                        SortOrder = m.SortOrder
+                    })
+                    .ToList()
+            })
+            .ToListAsync();
+
+        return Ok(posts);
+    }
 
     [HttpPost("{postId:guid}/like")]
     public async Task<IActionResult> LikePost(Guid postId, [FromQuery] string userId)
