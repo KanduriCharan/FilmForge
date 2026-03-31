@@ -213,4 +213,16 @@ public class CreateProfileController : ControllerBase
             UpdatedAt = profile.UpdatedAt
         };
     }
+    [HttpGet]
+    public async Task<IActionResult> GetAllProfiles()
+    {
+        var profiles = await _dbContext.UserProfiles
+            .AsNoTracking()
+            .OrderBy(x => x.FullName)
+            .ToListAsync();
+
+        var response = profiles.Select(MapProfile).ToList();
+
+        return Ok(response);
+    }
 }
