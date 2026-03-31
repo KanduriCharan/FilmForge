@@ -1,7 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Router } from '@angular/router';
 import {
   PostCommentResponse,
   PostResponse,
@@ -9,10 +8,28 @@ import {
 } from '../../../core/services/post.service';
 import { ProfileResponse, ProfileService } from '../../../core/services/profile.service';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
-interface OnlineUser {
+interface ChatUser {
+  userId: string;
   name: string;
+  username: string;
   craft: string;
+  avatar?: string;
+}
+
+interface ChatMessage {
+  id: number;
+  text: string;
+  sender: 'me' | 'them';
+  time: string;
+}
+
+interface OpenChat {
+  user: ChatUser;
+  minimized: boolean;
+  draftMessage: string;
+  messages: ChatMessage[];
 }
 
 interface CommentViewModel extends PostCommentResponse {
@@ -46,7 +63,6 @@ export class StudioComponent implements OnInit {
 
   currentUsername = localStorage.getItem('filmforge_username') ?? '';
   currentUserId = localStorage.getItem('filmforge_userId') ?? '';
-  isChatCollapsed = false;
 
   caption = '';
   selectedFiles: File[] = [];
@@ -59,20 +75,82 @@ export class StudioComponent implements OnInit {
   posts: PostViewModel[] = [];
   isLoadingPosts = false;
 
-  onlineUsers: OnlineUser[] = [
-    { name: 'Maya Reddy', craft: 'Screenwriting' },
-    { name: 'Aarav Menon', craft: 'Cinematography' },
-    { name: 'Sofia Blake', craft: 'Editing' },
-    { name: 'Jordan Lee', craft: 'Sound Design' },
-    { name: 'Ritika Sharma', craft: 'Directing' }
-  ];
+  isFriendListOpen = false;
+
+  chatUsers: ChatUser[] = [];
+
+  openChats: OpenChat[] = [];
 
   ngOnInit(): void {
     this.loadPosts();
+    this.loadChatUsers();
   }
 
-  toggleChat(): void {
-    this.isChatCollapsed = !this.isChatCollapsed;
+  toggleFriendList(): void {
+    this.isFriendListOpen = !this.isFriendListOpen;
+  }
+
+  openChat(user: ChatUser): void {
+    const existing = this.openChats.find((chat) => chat.user.userId === user.userId);
+
+    if (existing) {
+      existing.minimized = false;
+      this.isFriendListOpen = false;
+      return;
+    }
+
+    const newChat: OpenChat = {
+      user,
+      minimized: false,
+      draftMessage: '',
+      messages: [
+        {
+          id: 1,
+          text: `Hey! Great to connect. Working on anything exciting in ${user.craft.toLowerCase()}?`,
+          sender: 'them',
+          time: '2:14 PM'
+        }
+      ]
+    };
+
+    this.openChats = [...this.openChats, newChat];
+    this.isFriendListOpen = false;
+  }
+
+  toggleChatWindow(chat: OpenChat): void {
+    chat.minimized = !chat.minimized;
+  }
+
+  closeChat(userId: string): void {
+    this.openChats = this.openChats.filter((chat) => chat.user.userId !== userId);
+  }
+
+  sendChatMessage(chat: OpenChat): void {
+    const text = chat.draftMessage.trim();
+
+    if (!text) return;
+
+    chat.messages.push({
+      id: Date.now(),
+      text,
+      sender: 'me',
+      time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+    });
+
+    chat.draftMessage = '';
+
+    setTimeout(() => {
+      chat.messages.push({
+        id: Date.now() + 1,
+        text: `Nice. Let’s talk more about that.`,
+        sender: 'them',
+        time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+      });
+    }, 700);
+  }
+
+  getChatWindowRight(index: number): number {
+    return 96 + index * 332;
   }
 
   onFilesSelected(event: Event): void {
@@ -131,24 +209,6 @@ export class StudioComponent implements OnInit {
     }
 
     this.isPreviewOpen = true;
-  }
-
-  goToMyProfile(): void {
-    const userId = localStorage.getItem('filmforge_userId') ?? '';
-  
-    if (!userId) {
-      console.error('No logged-in userId found.');
-      return;
-    }
-  
-    this.profileService.getProfileByUserId(userId).subscribe({
-      next: (profile) => {
-        this.router.navigate(['/profile', profile.username]);
-      },
-      error: (error) => {
-        console.error('Failed to resolve my profile:', error);
-      }
-    });
   }
 
   closePreview(): void {
@@ -250,8 +310,7 @@ export class StudioComponent implements OnInit {
       next: () => {
         post.likesCount += 1;
       },
-      error: () => {
-      }
+      error: () => {}
     });
   }
 
@@ -261,6 +320,25 @@ export class StudioComponent implements OnInit {
     if (post.commentsOpen && !post.commentsLoaded) {
       this.loadComments(post);
     }
+  }
+  private loadChatUsers(): void {
+    this.profileService.getAllProfiles().subscribe({
+      next: (profiles) => {
+        this.chatUsers = profiles
+          .filter((profile) => profile.userId !== this.currentUserId)
+          .map((profile) => ({
+            userId: profile.userId,
+            name: profile.fullName,
+            username: profile.username,
+            craft: profile.primaryCraft,
+            avatar: profile.profileImageUrl
+          })).sort((a, b) => a.name.localeCompare(b.name));
+      },
+      error: (error) => {
+        console.error('Failed to load chat users:', error);
+        this.chatUsers = [];
+      }
+    });
   }
 
   loadComments(post: PostViewModel): void {
@@ -359,5 +437,23 @@ export class StudioComponent implements OnInit {
 
   trackByPostId(index: number, post: PostViewModel): string {
     return post.id;
+  }
+
+  goToMyProfile(): void {
+    const userId = localStorage.getItem('filmforge_userId') ?? '';
+  
+    if (!userId) {
+      console.error('No logged-in userId found.');
+      return;
+    }
+  
+    this.profileService.getProfileByUserId(userId).subscribe({
+      next: (profile) => {
+        this.router.navigate(['/profile', profile.username]);
+      },
+      error: (error) => {
+        console.error('Failed to resolve my profile:', error);
+      }
+    });
   }
 }

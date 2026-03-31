@@ -1,24 +1,98 @@
 <div class="studio-page">
-  <aside class="chat-sidebar" [class.collapsed]="isChatCollapsed">
-    <button class="chat-header" (click)="toggleChat()">
-      <div>
-        <p class="chat-title">Online now</p>
-        <span class="chat-count">{{ onlineUsers.length }} active</span>
-      </div>
-      <span class="chat-toggle">{{ isChatCollapsed ? '+' : '−' }}</span>
-    </button>
-
-    <div class="chat-body" *ngIf="!isChatCollapsed">
-      <div class="chat-user" *ngFor="let user of onlineUsers">
-        <div class="chat-user-avatar">{{ user.name.charAt(0) }}</div>
-        <div class="chat-user-meta">
-          <strong>{{ user.name }}</strong>
-          <span>{{ user.craft }}</span>
+  <div class="chat-fab-zone">
+    <div class="friend-list-panel" *ngIf="isFriendListOpen">
+      <div class="friend-list-header">
+        <div>
+          <strong>Chats</strong>
+          <span>{{ chatUsers.length }} creators</span>
         </div>
-        <span class="online-dot"></span>
+      </div>
+
+      <div class="friend-list-body">
+        <button
+          type="button"
+          class="friend-row"
+          *ngFor="let user of chatUsers"
+          (click)="openChat(user)"
+        >
+          <ng-container *ngIf="user.avatar; else initialsAvatar">
+            <img class="friend-avatar-image" [src]="user.avatar" [alt]="user.name" />
+          </ng-container>
+
+          <ng-template #initialsAvatar>
+            <div class="friend-avatar">{{ user.name.charAt(0) }}</div>
+          </ng-template>
+
+          <div class="friend-meta">
+            <strong>{{ user.name }}</strong>
+            <span>{{ '@' + user.username }} · {{ user.craft }}</span>
+          </div>
+
+          <span class="friend-dot"></span>
+        </button>
       </div>
     </div>
-  </aside>
+
+    <button type="button" class="chat-fab" (click)="toggleFriendList()">
+      <span class="chat-fab-icon">💬</span>
+    </button>
+  </div>
+
+  <div
+    class="chat-window"
+    *ngFor="let chat of openChats; let i = index"
+    [style.right.px]="getChatWindowRight(i)"
+  >
+    <div class="chat-window-header">
+      <div class="chat-window-user">
+        <ng-container *ngIf="chat.user.avatar; else chatInitialAvatar">
+          <img class="chat-window-avatar-image" [src]="chat.user.avatar" [alt]="chat.user.name" />
+        </ng-container>
+
+        <ng-template #chatInitialAvatar>
+          <div class="chat-window-avatar">{{ chat.user.name.charAt(0) }}</div>
+        </ng-template>
+
+        <div>
+          <strong>{{ chat.user.name }}</strong>
+          <span>{{ chat.user.craft }}</span>
+        </div>
+      </div>
+
+      <div class="chat-window-actions">
+        <button type="button" (click)="toggleChatWindow(chat)">—</button>
+        <button type="button" (click)="closeChat(chat.user.userId)">✕</button>
+      </div>
+    </div>
+
+    <div class="chat-window-body" *ngIf="!chat.minimized">
+      <div class="chat-messages">
+        <div
+          class="chat-message"
+          *ngFor="let message of chat.messages"
+          [class.me]="message.sender === 'me'"
+        >
+          <div class="chat-bubble">
+            {{ message.text }}
+          </div>
+          <span class="chat-time">{{ message.time }}</span>
+        </div>
+      </div>
+
+      <div class="chat-input-row">
+        <input
+          type="text"
+          [(ngModel)]="chat.draftMessage"
+          placeholder="Type a message..."
+          class="chat-input"
+          (keydown.enter)="sendChatMessage(chat)"
+        />
+        <button type="button" class="chat-send-btn" (click)="sendChatMessage(chat)">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
 
   <section class="studio-shell">
     <header class="studio-header">
@@ -99,7 +173,7 @@
 
             <div class="feed-meta">
               <h3>{{ post.authorName }}</h3>
-              <p>{{'@'+ post.username }} · {{ '@' +post.craft }}</p>
+              <p>{{ '@' + post.username }} · {{ post.craft }}</p>
             </div>
 
             <span class="feed-tag">post</span>
@@ -146,13 +220,24 @@
 
           <div class="comments-panel" *ngIf="post.commentsOpen">
             <div class="comment-composer">
-              <input
-                type="text"
-                [(ngModel)]="post.newComment"
-                placeholder="Write a comment..."
-                class="comment-input"
-              />
-              <button (click)="submitComment(post)" class="comment-submit-btn">Send</button>
+              <div class="comment-avatar current-user">Y</div>
+
+              <div class="comment-input-wrap">
+                <input
+                  type="text"
+                  [(ngModel)]="post.newComment"
+                  placeholder="Add to the conversation..."
+                  class="comment-input"
+                />
+              </div>
+
+              <button
+                (click)="submitComment(post)"
+                class="comment-submit-btn"
+                [disabled]="!post.newComment?.trim()"
+              >
+                Post
+              </button>
             </div>
 
             <p class="comment-state" *ngIf="post.commentsLoading">Loading comments...</p>
@@ -160,20 +245,31 @@
 
             <div class="comments-list" *ngIf="!post.commentsLoading && post.comments.length > 0">
               <div class="comment-item" *ngFor="let comment of post.comments">
-                <div class="comment-avatar">{{ comment.authorName.charAt(0) }}</div>
+                <div class="comment-avatar">
+                  {{ comment.authorName.charAt(0) }}
+                </div>
+
                 <div class="comment-body">
-                  <p class="comment-author">
-                    {{ comment.authorName }}
-                    <span>{{'@'+ comment.username }}</span>
-                  </p>
+                  <div class="comment-header">
+                    <p class="comment-author">
+                      {{ comment.authorName }}
+                    </p>
+                    <span class="comment-username">{{ '@' + comment.username }}</span>
+                  </div>
+
                   <p class="comment-text">{{ comment.content }}</p>
                 </div>
               </div>
             </div>
 
-            <p class="comment-state" *ngIf="!post.commentsLoading && post.comments.length === 0">
-              No comments yet.
-            </p>
+            <div
+              class="comment-empty-state"
+              *ngIf="!post.commentsLoading && post.comments.length === 0"
+            >
+              <div class="empty-icon">💬</div>
+              <p>No comments yet</p>
+              <span>Be the first filmmaker to respond.</span>
+            </div>
           </div>
         </article>
 

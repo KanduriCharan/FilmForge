@@ -65,4 +65,8 @@ export class ProfileService {
   getProfileByUserId(userId: string): Observable<ProfileResponse> {
     return this.http.get<ProfileResponse>(`${this.apiBaseUrl}/by-userid/${userId}`);
   }
+  getAllProfiles() {
+    return this.http.get<ProfileResponse[]>(this.apiBaseUrl);
+  }
+  
 }
